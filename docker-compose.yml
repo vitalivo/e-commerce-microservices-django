@@ -1,37 +1,56 @@
 version: '3.8'
 
-version: '3.8'
-
 services:
-  user-db:
+  postgres-db:
     image: postgres:14
+    container_name: postgres-db
     environment:
       POSTGRES_DB: ecommerce_users
       POSTGRES_USER: postgres1
       POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    volumes:
-      - user_db_/var/lib/postgresql/data
+    restart: unless-stopped
 
   user-service:
     build: ./user-service
-    command: python manage.py runserver 0.0.0.0:8001
+    container_name: user-service
+    command: gunicorn user_service.wsgi:application --bind 0.0.0.0:8001
     volumes:
       - ./user-service:/app
     ports:
       - "8001:8001"
     environment:
-      - DB_HOST=user-db
+      - DB_HOST=postgres-db
       - DB_NAME=ecommerce_users
       - DB_USER=postgres1
       - DB_PASSWORD=postgres
       - SECRET_KEY=your-super-secret-key-change-in-prod
-      - DEBUG=1
+      - DEBUG=0
     depends_on:
-      - user-db
-    env_file:
-      - ./user-service/.env
+      - postgres-db
+    restart: unless-stopped
+
+  product-service:
+    build: ./product-service
+    container_name: product-service
+    command: gunicorn product_service.wsgi:application --bind 0.0.0.0:8002
+    volumes:
+      - ./product-service:/app
+    ports:
+      - "8002:8002"
+    environment:
+      - DB_HOST=postgres-db
+      - DB_NAME=ecommerce_products
+      - DB_USER=postgres1
+      - DB_PASSWORD=postgres
+      - SECRET_KEY=your-super-secret-key-change-in-prod
+      - DEBUG=0
+    depends_on:
+      - postgres-db
+    restart: unless-stopped
 
 volumes:
-  user_db_
+  postgres_data:

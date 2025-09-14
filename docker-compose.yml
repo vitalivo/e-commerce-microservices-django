@@ -6,10 +6,11 @@ services:
       POSTGRES_DB: ecommerce_users
       POSTGRES_USER: postgres1
       POSTGRES_PASSWORD: postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
     restart: unless-stopped
 
   user-service:
@@ -49,6 +50,44 @@ services:
     depends_on:
       - postgres-db
     restart: unless-stopped
+
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    command: gunicorn order_service.wsgi:application --bind 0.0.0.0:8003
+    volumes:
+      - ./order-service:/app
+    ports:
+      - "8003:8003"
+    environment:
+      - DB_HOST=postgres-db
+      - DB_NAME=ecommerce_orders
+      - DB_USER=postgres1
+      - DB_PASSWORD=postgres
+      - SECRET_KEY=your-super-secret-key-change-in-prod
+      - DEBUG=0
+    depends_on:
+      - postgres-db
+    restart: unless-stopped
+
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    command: gunicorn payment_service.wsgi:application --bind 0.0.0.0:8004
+    volumes:
+      - ./payment-service:/app
+    ports:
+      - "8004:8004"
+    environment:
+      - DB_HOST=postgres-db
+      - DB_NAME=ecommerce_payments
+      - DB_USER=postgres1
+      - DB_PASSWORD=postgres
+      - SECRET_KEY=your-super-secret-key-change-in-prod
+      - DEBUG=0
+    depends_on:
+      - postgres-db
+    restart: unless-stopped  
 
 volumes:
   postgres_data:

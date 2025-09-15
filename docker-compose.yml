@@ -87,7 +87,26 @@ services:
       - DEBUG=0
     depends_on:
       - postgres-db
-    restart: unless-stopped  
+    restart: unless-stopped 
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    command: gunicorn notification_service.wsgi:application --bind 0.0.0.0:8005
+    volumes:
+      - ./notification-service:/app
+    ports:
+      - "8005:8005"
+    environment:
+      - DB_HOST=postgres-db
+      - DB_NAME=ecommerce_notifications
+      - DB_USER=postgres1
+      - DB_PASSWORD=postgres
+      - SECRET_KEY=your-super-secret-key-change-in-prod
+      - DEBUG=0
+    depends_on:
+      - postgres-db
+    restart: unless-stopped   
 
 volumes:
   postgres_data:

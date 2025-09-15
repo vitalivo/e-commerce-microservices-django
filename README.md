@@ -1,19 +1,18 @@
-# E-Commerce Microservices Platform
+## 💳 payment-service
 
-Backend microservices for e-commerce platform built with Django and Docker.
+Микросервис обработки платежей.
 
-## Services
-- `user-service`: User management, JWT authentication
-- `product-service`: Product catalog, categories, API
+### Функции
+- Обработка оплаты заказа
+- Поддержка разных способов оплаты (карта, PayPal)
+- Логирование транзакций
+- Поддержка локализации (ru/en)
 
-## Tech Stack
-- Python, Django, DRF
-- PostgreSQL
-- Docker, docker-compose
-- JWT, i18n
+### API
+- `POST /api/payments/process/` — создать платёж
+- `GET /api/payments/<id>/` — получить платёж
 
-## Setup
-```bash
-git clone https://github.com/vitalivo/e-commerce-microservices-django.git
-cd e-commerce-platform
-docker-compose up --build
+### База данных
+- Имя: `ecommerce_payments`
+- Пользователь: `postgres1`
+- Таблица: `payments`
